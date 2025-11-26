@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Invaders</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+   <div id="app">
+        
+        <!-- 1. TELA DE LOGIN -->
+        <div id="screen-login" class="screen">
+            <h1>SPACE<br>INVADERS</h1>
+            <input type="text" id="player-name-input" placeholder="NOME DO PILOTO" maxlength="10">
+            <button id="btn-enter">ENTRAR</button>
+        </div>
+
+        <!-- 2. TELA DE MENU -->
+        <div id="screen-menu" class="screen hidden">
+            <h2>COMANDO CENTRAL</h2>
+            <p id="welcome-msg" style="margin-bottom: 20px; font-size: 0.7rem; color: #aaa;"></p>
+            <button id="btn-play">JOGAR</button>
+            <button id="btn-ranking">RANKING</button>
+            <button id="btn-exit">SAIR</button>
+        </div>
+
+        <!-- 3. TELA DE JOGO -->
+        <div id="screen-game" class="screen hidden">
+            <div id="hud">
+                <span>SCORE: <span id="score-val">0</span></span>
+                <span>TIME: <span id="time-val">00:00</span></span>
+            </div>
+            <!-- Canvas onde o jogo será desenhado -->
+            <canvas id="game-canvas" width="800" height="540"></canvas>
+        </div>
+
+        <!-- 4. TELA DE GAME OVER / RANKING -->
+        <div id="screen-ranking" class="screen hidden">
+            <h2 id="ranking-title">TOP PILOTOS</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>NOME</th>
+                        <th>PONTOS</th>
+                    </tr>
+                </thead>
+                <tbody id="ranking-list">
+                    <!-- Dados fictícios para visualização da Fase 1 -->
+                    <tr><td>1</td><td>Edu</td><td>5000</td></tr>
+                    <tr><td>2</td><td>BBB</td><td>4200</td></tr>
+                    <tr><td>3</td><td>CCC</td><td>3100</td></tr>
+                </tbody>
+            </table>
+            <button id="btn-back-menu">VOLTAR AO MENU</button>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
