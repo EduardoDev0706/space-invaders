@@ -5,13 +5,12 @@ const ctx = canvas.getContext('2d');
 // --- ASSETS (IMAGENS E SONS) ---
 const sprites = {
     player: new Image(),
-    alien1: new Image(), // Alien green
-    alien2: new Image(), // Alien yellow
-    alien3: new Image(), // Alien red
-    ufo: new Image()     // Nave Especial
+    alien1: new Image(),
+    alien2: new Image(),
+    alien3: new Image(),
+    ufo: new Image()
 };
 
-// Certifique-se que estes arquivos existem na pasta assets
 sprites.player.src = 'assets/player.png';
 sprites.alien1.src = 'assets/green.png';
 sprites.alien2.src = 'assets/yellow.png';
@@ -49,6 +48,7 @@ const DB_KEY = "space_invaders_db_v1";
 let gameRunning = false;
 let isPaused = false;
 let animationId;
+
 let bullets = [];
 let enemyBullets = [];
 let player;
@@ -60,13 +60,13 @@ let currentScore = 0;
 let startTime = 0;
 let level = 1;
 let baseEnemySpeed = 2;
-let enemyDirection = 1; // 1 = Direita, -1 = Esquerda
+let enemyDirection = 1;
 
 // Controle de Teclado
 const keys = { ArrowRight: false, ArrowLeft: false, Space: false };
 
 
-// --- 2. SISTEMA DE DADOS (LOCAL STORAGE) ---
+// --- 2. SISTEMA DE DADOS E UTILITÁRIOS ---
 
 function getDB() {
     const data = localStorage.getItem(DB_KEY);
@@ -78,8 +78,16 @@ function saveDB(data) {
 }
 
 function validatePassword(password) {
+    // Mínimo 6 chars, 1 letra, 1 número, 1 especial
     const regex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{6,14}$/;
     return regex.test(password);
+}
+
+// Formata segundos em MM:SS (ex: 125 -> 02:05)
+function formatTime(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 
@@ -98,7 +106,6 @@ class Player {
         if (sprites.player.complete && sprites.player.naturalWidth !== 0) {
             ctx.drawImage(sprites.player, this.x, this.y, this.width, this.height);
         } else {
-            // Fallback: Quadrado Verde Neon se imagem falhar
             ctx.fillStyle = '#33ff00';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
@@ -122,13 +129,12 @@ class Alien {
         this.x = x;
         this.y = y;
         this.width = 40;
-        this.height = 30; // Ajustado proporção
+        this.height = 30;
         this.type = type;
     }
 
     draw() {
         let spriteToUse;
-        // 3=Red, 2=Yellow, 1=Green
         if (this.type === 3) spriteToUse = sprites.alien3;
         else if (this.type === 2) spriteToUse = sprites.alien2;
         else spriteToUse = sprites.alien1;
@@ -136,7 +142,6 @@ class Alien {
         if (spriteToUse.complete && spriteToUse.naturalWidth !== 0) {
             ctx.drawImage(spriteToUse, this.x, this.y, this.width, this.height);
         } else {
-            // Fallback colorido
             ctx.fillStyle = this.type === 3 ? 'red' : (this.type === 2 ? 'yellow' : '#33ff00');
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
@@ -148,7 +153,7 @@ class Ufo {
         this.width = 60;
         this.height = 30;
         this.x = -100;
-        this.y = 40; // Um pouco abaixo do topo absoluto
+        this.y = 40;
         this.speed = 4;
         this.active = false;
         this.direction = 1;
@@ -159,7 +164,7 @@ class Ufo {
         if (sprites.ufo.complete && sprites.ufo.naturalWidth !== 0) {
             ctx.drawImage(sprites.ufo, this.x, this.y, this.width, this.height);
         } else {
-            ctx.fillStyle = '#ff00ff'; // Roxo
+            ctx.fillStyle = '#ff00ff';
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
     }
@@ -218,45 +223,39 @@ class EnemyBullet {
     }
 
     draw() {
-        ctx.fillStyle = '#ff0000'; // Vermelho
+        ctx.fillStyle = '#ff0000';
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 
     update() {
-        this.y += this.speed; // Vai para BAIXO
-        if (this.y > canvas.height) {
-            this.toRemove = true;
-        }
+        this.y += this.speed;
+        if (this.y > canvas.height) this.toRemove = true;
     }
 }
 
 
-// --- 4. FUNÇÕES DE CRIAÇÃO (FALTAVA ISSO NO SEU CÓDIGO) ---
+// --- 4. FUNÇÕES DE CRIAÇÃO ---
 
 function createEnemies() {
     enemies = [];
     const rows = 5;
     const cols = 8;
     const padding = 15;
-    const offsetTop = 60; // Espaço para o UFO passar em cima
+    const offsetTop = 60;
     const offsetLeft = 50;
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             const x = offsetLeft + c * (40 + padding);
             const y = offsetTop + r * (30 + padding);
-
-            // Define tipo: Linha 0=Red(3), 1-2=Yellow(2), 3-4=Green(1)
             let type = 1;
             if (r === 0) type = 3;
             else if (r === 1 || r === 2) type = 2;
-
             enemies.push(new Alien(x, y, type));
         }
     }
 }
 
-// Função de Colisão
 function checkCollision(rect1, rect2) {
     return (
         rect1.x < rect2.x + rect2.width &&
@@ -274,12 +273,11 @@ function gameLoop() {
 
     // A. Limpar e Desenhar Fundo
     drawBackground();
-   
 
     // B. HUD
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
     document.getElementById('score-val').textContent = currentScore;
-    document.getElementById('time-val').textContent = elapsed + "s";
+    document.getElementById('time-val').textContent = formatTime(elapsed);
 
     // C. Player
     player.update();
@@ -290,7 +288,6 @@ function gameLoop() {
     ufo.update();
     ufo.draw();
 
-    // Colisão Bala x UFO
     bullets.forEach((bullet) => {
         if (ufo.active && checkCollision(bullet, ufo)) {
             playSound('explosion');
@@ -300,7 +297,7 @@ function gameLoop() {
         }
     });
 
-    // E. Balas
+    // E. Balas Player
     bullets.forEach((bullet, index) => {
         bullet.update();
         if (bullet.toRemove) bullets.splice(index, 1);
@@ -308,27 +305,19 @@ function gameLoop() {
     });
 
     // F. Tiros dos Inimigos
-    // 1. Chance de criar novo tiro (Aumenta com o nível)
     const shootChance = 0.01 + (level * 0.005); 
     
     if (enemies.length > 0 && Math.random() < shootChance) {
-        // Escolhe um alien aleatório para atirar
         const shooter = enemies[Math.floor(Math.random() * enemies.length)];
-        // Cria a bala na posição desse alien
         enemyBullets.push(new EnemyBullet(shooter.x + shooter.width/2, shooter.y + shooter.height));
     }
 
-    // 2. Atualizar e Desenhar Tiros Inimigos
     enemyBullets.forEach((bullet, index) => {
         bullet.update();
-        bullet.draw(); // <--- Desenha o tiro vermelho
-
-        // Remove se sair da tela
+        bullet.draw();
         if (bullet.toRemove) {
             enemyBullets.splice(index, 1);
-        } 
-        // Checa se acertou o Player (GAME OVER)
-        else if (checkCollision(bullet, player)) {
+        } else if (checkCollision(bullet, player)) {
             gameOver();
             return;
         }
@@ -336,16 +325,11 @@ function gameLoop() {
 
     // G. Inimigos
     let hitEdge = false;
-    
-    // Loop reverso para remoção segura
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         let enemyHit = false;
-
-        // Desenhar Inimigo
         enemy.draw();
 
-        // Colisão Bala x Alien
         for (let j = bullets.length - 1; j >= 0; j--) {
             const bullet = bullets[j];
             if (checkCollision(bullet, enemy)) {
@@ -353,38 +337,33 @@ function gameLoop() {
                 if (enemy.type === 3) currentScore += 30;
                 else if (enemy.type === 2) currentScore += 20;
                 else currentScore += 10;
-                
-                bullets.splice(j, 1); // Remove bala
+                bullets.splice(j, 1);
                 enemyHit = true;
                 break;
             }
         }
 
         if (enemyHit) {
-            enemies.splice(i, 1); // Remove alien
+            enemies.splice(i, 1);
             continue;
         }
 
-        // Movimento
         if (enemyDirection === 1 && (enemy.x + enemy.width) >= canvas.width) hitEdge = true;
         else if (enemyDirection === -1 && enemy.x <= 0) hitEdge = true;
 
         enemy.x += (baseEnemySpeed + (level * 0.5)) * enemyDirection;
 
-        // Game Over
         if (checkCollision(enemy, player) || (enemy.y + enemy.height) >= canvas.height) {
             gameOver();
             return;
         }
     }
 
-    // H. Horda desce
     if (hitEdge) {
         enemyDirection *= -1;
         enemies.forEach(e => e.y += 20);
     }
 
-    // I. Próxima Fase
     if (enemies.length === 0) levelUp();
 
     animationId = requestAnimationFrame(gameLoop);
@@ -408,7 +387,6 @@ function drawBackground() {
     ctx.fillStyle = '#ffffff';
     stars.forEach(star => {
         ctx.fillRect(star.x, star.y, star.size, star.size);
-        // Pequeno movimento
         star.y += star.speed;
         if (star.y > canvas.height) star.y = 0;
     });
@@ -426,6 +404,7 @@ function startGame() {
     gameRunning = true;
     isPaused = false;
     document.getElementById('btn-pause').innerText = "PAUSE";
+    
     currentScore = 0;
     level = 1;
     startTime = Date.now();
@@ -435,43 +414,42 @@ function startGame() {
     bullets = [];
     enemyBullets = [];
     player = new Player();
-    createEnemies(); // <--- AGORA ESSA FUNÇÃO EXISTE
+    createEnemies();
     ufo = new Ufo();
 
     gameLoop();
 }
 
 function togglePause() {
-    if (!gameRunning) return; // Só pausa se o jogo estiver rodando
+    if (!gameRunning) return;
 
-    isPaused = !isPaused; // Inverte o estado (True <-> False)
+    isPaused = !isPaused;
 
     if (isPaused) {
-        // --- ENTROU EM PAUSE ---
-        cancelAnimationFrame(animationId); // Para o loop do jogo
-        sounds.bgMusic.pause(); // Pausa a música
+        // --- PAUSE ATIVO ---
+        cancelAnimationFrame(animationId);
+        sounds.bgMusic.pause();
         
-        // Desenha "PAUSED" na tela sobre o jogo parado
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // Fundo semi-transparente
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.fillStyle = '#fff';
         ctx.font = '30px "Press Start 2P", cursive';
         ctx.textAlign = 'center';
         ctx.fillText("PAUSE", canvas.width / 2, canvas.height / 2);
-        ctx.textAlign = 'start'; // Reseta alinhamento
+        ctx.textAlign = 'start';
         
-        // Muda texto do botão
         document.getElementById('btn-pause').innerText = "RESUME";
 
     } else {
-        // --- SAIU DO PAUSE (RETOMAR) ---
-        sounds.bgMusic.play().catch(e => console.log("Erro som resume"));
+        // --- RETOMAR ---
+        // Ajusta o tempo inicial para descontar o tempo que ficou pausado
+        // (Opcional, mas evita que o tempo pule. No momento deixei simples)
+        sounds.bgMusic.play().catch(e => {});
         document.getElementById('btn-pause').innerText = "PAUSE";
-        gameLoop(); // Reinicia o loop
+        gameLoop();
     }  
 }
-
 
 function stopGame() {
     gameRunning = false;
@@ -495,9 +473,12 @@ function gameOver() {
     playSound('explosion');
 
     const finalTime = Math.floor((Date.now() - startTime) / 1000);
-    alert(`GAME OVER!\nScore: ${currentScore}\nNível: ${level}`);
     
+    // Tenta salvar se for recorde
     saveScoreToRanking(currentScore, finalTime);
+
+    alert(`GAME OVER!\nScore: ${currentScore}\nTempo Vivo: ${formatTime(finalTime)}`);
+
     updateRankingTable();
     showScreen('ranking');
 }
@@ -507,8 +488,10 @@ function saveScoreToRanking(score, timeSeconds) {
     const db = getDB();
     const user = db[state.currentUser.name];
 
+    // Se bater recorde de pontos, salva Score E Tempo
     if (score > user.highScore) {
         user.highScore = score;
+        user.bestTime = timeSeconds;
         db[state.currentUser.name] = user;
         saveDB(db);
     }
@@ -517,34 +500,26 @@ function saveScoreToRanking(score, timeSeconds) {
 
 // --- 7. INPUTS E INTERFACE ---
 
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'ArrowRight') keys.ArrowRight = true;
-    if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
-    if (e.code === 'Space') {
-        if (gameRunning && !e.repeat) player.shoot();
-    }
-});
-
-window.addEventListener('keyup', (e) => {
-    if (e.code === 'ArrowRight') keys.ArrowRight = false;
-    if (e.code === 'ArrowLeft') keys.ArrowLeft = false;
-});
-
+// Mapeamento de Telas
 const screens = {
     login: document.getElementById('screen-login'),
     menu: document.getElementById('screen-menu'),
     game: document.getElementById('screen-game'),
-    ranking: document.getElementById('screen-ranking')
+    ranking: document.getElementById('screen-ranking'),
+    controls: document.getElementById('screen-controls') // Tela nova mapeada
 };
 
+// Mapeamento de UI
 const ui = {
     username: document.getElementById('username'),
     password: document.getElementById('password'),
+    confirmPassword: document.getElementById('confirm-password'), // Campo novo mapeado
     msg: document.getElementById('login-message'),
     welcome: document.getElementById('welcome-msg'),
     rankingList: document.getElementById('ranking-list')
 };
 
+// Funções de Troca de Tela
 function showScreen(screenName) {
     Object.values(screens).forEach(s => s.classList.add('hidden'));
     screens[screenName].classList.remove('hidden');
@@ -557,6 +532,41 @@ function showMessage(text, type) {
     ui.msg.className = `message ${type}`;
     ui.msg.classList.remove('hidden');
 }
+
+// --- Event Listeners (UNIFICADOS) ---
+
+// Teclado (Keydown)
+window.addEventListener('keydown', (e) => {
+    // Comandos Globais (Pause)
+    if (e.code === 'KeyP' || e.code === 'Escape') {
+        togglePause();
+    }
+
+    // Comandos de Jogo (Só funcionam se não estiver pausado)
+    if (!isPaused) { 
+        if (e.code === 'ArrowRight') keys.ArrowRight = true;
+        if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
+        if (e.code === 'Space') {
+            if (gameRunning && !e.repeat) player.shoot();
+        }
+    }
+});
+
+// Teclado (Keyup)
+window.addEventListener('keyup', (e) => {
+    if (!isPaused) {
+        if (e.code === 'ArrowRight') keys.ArrowRight = false;
+        if (e.code === 'ArrowLeft') keys.ArrowLeft = false;
+    }
+});
+
+// Botão Pause na Tela
+document.getElementById('btn-pause').addEventListener('click', () => {
+    togglePause();
+    document.getElementById('btn-pause').blur(); 
+});
+
+// --- Botões do Menu e Login ---
 
 document.getElementById('btn-login-action').addEventListener('click', () => {
     const user = ui.username.value.trim().toUpperCase();
@@ -581,21 +591,36 @@ document.getElementById('btn-login-action').addEventListener('click', () => {
 document.getElementById('btn-cadastrar-action').addEventListener('click', () => {
     const user = ui.username.value.trim().toUpperCase();
     const pass = ui.password.value.trim();
+    const confirmPass = ui.confirmPassword.value.trim(); // Pega valor da confirmação
     const db = getDB();
 
-    if (!user || !pass) return showMessage("Preencha todos os campos.", "error");
+    // Validações
+    if (!user || !pass || !confirmPass) return showMessage("Preencha todos os campos.", "error");
+    if (pass !== confirmPass) return showMessage("As senhas não conferem!", "error");
     if (db[user]) return showMessage("Usuário já existe!", "error");
     if (!validatePassword(pass)) return showMessage("Senha fraca!", "error");
 
-    db[user] = { name: user, password: pass, highScore: 0 };
+    // Cria novo usuário (inicia bestTime com 0)
+    db[user] = { name: user, password: pass, highScore: 0, bestTime: 0 };
     saveDB(db);
+    
     showMessage("Cadastro realizado! Faça Login.", "success");
     ui.password.value = "";
+    ui.confirmPassword.value = "";
 });
 
+// Botões de Navegação
 document.getElementById('btn-play').addEventListener('click', () => {
     showScreen('game');
     startGame();
+});
+
+document.getElementById('btn-controls').addEventListener('click', () => {
+    showScreen('controls');
+});
+
+document.getElementById('btn-back-menu-controls').addEventListener('click', () => {
+    showScreen('menu');
 });
 
 document.getElementById('btn-ranking').addEventListener('click', () => {
@@ -610,41 +635,11 @@ document.getElementById('btn-exit').addEventListener('click', () => {
     state.currentUser = null;
     ui.username.value = "";
     ui.password.value = "";
+    ui.confirmPassword.value = "";
     showScreen('login');
 });
 
-// 1. Evento de Clique no botão da tela
-document.getElementById('btn-pause').addEventListener('click', () => {
-    togglePause(); // Ao clicar, pausa ou retoma
-    // Tira o foco do botão para que o Enter/Espaço não reative o botão acidentalmente
-    document.getElementById('btn-pause').blur(); 
-});
-
-// 2. Atualize o Evento de Teclado (keydown) existente
-window.addEventListener('keydown', (e) => {
-    // Tecla P ou ESC para pausar
-    if (e.code === 'KeyP' || e.code === 'Escape') {
-        togglePause();
-    }
-
-    // Só permite mover se NÃO estiver pausado
-    if (!isPaused) { 
-        if (e.code === 'ArrowRight') keys.ArrowRight = true;
-        if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
-        if (e.code === 'Space') {
-            if (gameRunning && !e.repeat) player.shoot();
-        }
-    }
-});
-
-// 3. Atualize o Evento de Teclado (keyup)
-window.addEventListener('keyup', (e) => {
-    if (!isPaused) {
-        if (e.code === 'ArrowRight') keys.ArrowRight = false;
-        if (e.code === 'ArrowLeft') keys.ArrowLeft = false;
-    }
-});
-
+// Função de Atualizar Tabela (Com Tempo)
 function updateRankingTable() {
     const db = getDB();
     const sortedPlayers = Object.values(db)
@@ -655,6 +650,7 @@ function updateRankingTable() {
         <tr>
             <td>${i+1}. ${p.name}</td>
             <td>${p.highScore}</td>
+            <td>${formatTime(p.bestTime || 0)}</td>
         </tr>
     `).join('');
 }
