@@ -15,6 +15,7 @@ Este projeto foi criado com a intenção de homenagear o lendário **Space Invad
 3.  **Controles:**
     * `Seta Esquerda` / `Seta Direita`: Mover a nave.
     * `Espaço`: Atirar.
+    * `Tecla P ou ESC`: Pause
 4.  Destrua todos os aliens para avançar de nível.
 5.  Evite os tiros inimigos e não deixe a horda tocar no chão!
 
