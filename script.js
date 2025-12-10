@@ -47,6 +47,7 @@ const DB_KEY = "space_invaders_db_v1";
 
 // Variáveis do Jogo
 let gameRunning = false;
+let isPaused = false;
 let animationId;
 let bullets = [];
 let enemyBullets = [];
@@ -423,6 +424,8 @@ function startGame() {
     sounds.bgMusic.play().catch(e => console.log("Autoplay bloqueado pelo navegador"));
 
     gameRunning = true;
+    isPaused = false;
+    document.getElementById('btn-pause').innerText = "PAUSE";
     currentScore = 0;
     level = 1;
     startTime = Date.now();
@@ -437,6 +440,38 @@ function startGame() {
 
     gameLoop();
 }
+
+function togglePause() {
+    if (!gameRunning) return; // Só pausa se o jogo estiver rodando
+
+    isPaused = !isPaused; // Inverte o estado (True <-> False)
+
+    if (isPaused) {
+        // --- ENTROU EM PAUSE ---
+        cancelAnimationFrame(animationId); // Para o loop do jogo
+        sounds.bgMusic.pause(); // Pausa a música
+        
+        // Desenha "PAUSED" na tela sobre o jogo parado
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // Fundo semi-transparente
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = '30px "Press Start 2P", cursive';
+        ctx.textAlign = 'center';
+        ctx.fillText("PAUSE", canvas.width / 2, canvas.height / 2);
+        ctx.textAlign = 'start'; // Reseta alinhamento
+        
+        // Muda texto do botão
+        document.getElementById('btn-pause').innerText = "RESUME";
+
+    } else {
+        // --- SAIU DO PAUSE (RETOMAR) ---
+        sounds.bgMusic.play().catch(e => console.log("Erro som resume"));
+        document.getElementById('btn-pause').innerText = "PAUSE";
+        gameLoop(); // Reinicia o loop
+    }  
+}
+
 
 function stopGame() {
     gameRunning = false;
@@ -576,6 +611,38 @@ document.getElementById('btn-exit').addEventListener('click', () => {
     ui.username.value = "";
     ui.password.value = "";
     showScreen('login');
+});
+
+// 1. Evento de Clique no botão da tela
+document.getElementById('btn-pause').addEventListener('click', () => {
+    togglePause(); // Ao clicar, pausa ou retoma
+    // Tira o foco do botão para que o Enter/Espaço não reative o botão acidentalmente
+    document.getElementById('btn-pause').blur(); 
+});
+
+// 2. Atualize o Evento de Teclado (keydown) existente
+window.addEventListener('keydown', (e) => {
+    // Tecla P ou ESC para pausar
+    if (e.code === 'KeyP' || e.code === 'Escape') {
+        togglePause();
+    }
+
+    // Só permite mover se NÃO estiver pausado
+    if (!isPaused) { 
+        if (e.code === 'ArrowRight') keys.ArrowRight = true;
+        if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
+        if (e.code === 'Space') {
+            if (gameRunning && !e.repeat) player.shoot();
+        }
+    }
+});
+
+// 3. Atualize o Evento de Teclado (keyup)
+window.addEventListener('keyup', (e) => {
+    if (!isPaused) {
+        if (e.code === 'ArrowRight') keys.ArrowRight = false;
+        if (e.code === 'ArrowLeft') keys.ArrowLeft = false;
+    }
 });
 
 function updateRankingTable() {
