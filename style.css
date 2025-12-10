@@ -1,18 +1,12 @@
 /* Fonte Principal */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     background-color: #0d0d0d;
-    /* Fundo quase preto */
     color: #fff;
     font-family: 'Press Start 2P', cursive;
-    /* Fonte Pixelada */
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -20,7 +14,6 @@ body {
     overflow: hidden;
 }
 
-/* Container Principal */
 #app {
     width: 100%;
     max-width: 800px;
@@ -28,16 +21,11 @@ body {
     position: relative;
     background: radial-gradient(circle, #1a1a2e 0%, #000000 100%);
     border: 4px solid #33ff00;
-    /* Borda verde neon estilo terminal */
     box-shadow: 0 0 20px rgba(51, 255, 0, 0.2);
 }
 
-/* Utilitário para esconder telas */
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
 
-/* Estilo das Telas */
 .screen {
     width: 100%;
     height: 100%;
@@ -49,7 +37,6 @@ body {
     text-align: center;
 }
 
-/* Títulos */
 h1 {
     color: #33ff00;
     margin-bottom: 40px;
@@ -58,92 +45,60 @@ h1 {
     line-height: 1.5;
 }
 
-h2 {
-    color: #fff;
-    margin-bottom: 30px;
-    font-size: 1.2rem;
-}
+h2 { color: #fff; margin-bottom: 30px; font-size: 1.2rem; }
 
-/* Inputs */
+/* Formulários */
+.form-container { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
 input {
     padding: 15px;
     font-family: 'Press Start 2P', cursive;
     background: #000;
     border: 2px solid #33ff00;
     color: #33ff00;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     text-align: center;
     width: 80%;
     max-width: 400px;
     outline: none;
+    font-size: 0.8rem;
 }
 
-input::placeholder {
-    color: #33ff0088;
-}
+input::placeholder { color: #33ff0055; font-size: 0.6rem; }
 
 /* Botões */
+.button-group { display: flex; gap: 10px; justify-content: center; }
+
 button {
     background: transparent;
     color: #33ff00;
     border: 2px solid #33ff00;
-    padding: 15px 30px;
+    padding: 15px 10px;
     font-family: 'Press Start 2P', cursive;
-    font-size: 1rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.2s;
-    margin: 10px;
-    width: 250px;
-    /* Largura fixa para botões do menu ficarem alinhados */
+    margin: 10px 0;
+    min-width: 150px;
 }
 
-button:hover {
-    background: #33ff00;
-    color: #000;
-    transform: scale(1.05);
-}
+button:hover { background: #33ff00; color: #000; transform: scale(1.05); }
 
-/* --- TELA DE JOGO --- */
-#screen-game {
-    justify-content: flex-start;
-    /* Alinha o jogo no topo */
-    padding: 0;
-}
+/* Mensagens de Feedback */
+.message { margin-top: 15px; font-size: 0.7rem; line-height: 1.5; max-width: 400px; }
+.error { color: #ff3333; }
+.success { color: #33ff00; }
 
+/* TELA DE JOGO */
+#screen-game { justify-content: flex-start; padding: 0; }
 #hud {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 20px;
-    background-color: #000;
-    border-bottom: 2px solid #33ff00;
-    font-size: 0.8rem;
+    width: 100%; display: flex; justify-content: space-between;
+    padding: 15px 20px; background-color: #000;
+    border-bottom: 2px solid #33ff00; font-size: 0.8rem;
 }
+canvas { background-color: #000; display: block; margin: 0 auto; max-width: 100%; }
 
-canvas {
-    background-color: #000;
-    display: block;
-    margin: 0 auto;
-    /* O canvas será dimensionado via JS, mas o CSS ajuda no placeholder */
-    max-width: 100%;
-    max-height: calc(100% - 60px);
-    /* Altura total menos o HUD */
-}
-
-/* --- TELA DE RANKING --- */
-table {
-    width: 80%;
-    margin-bottom: 30px;
-    border-collapse: collapse;
-}
-
-th,
-td {
-    border: 1px solid #444;
-    padding: 10px;
-    font-size: 0.8rem;
-}
-
-th {
-    color: #33ff00;
-}
+/* RANKING */
+table { width: 80%; margin-bottom: 30px; border-collapse: collapse; }
+th, td { border: 1px solid #444; padding: 10px; font-size: 0.8rem; }
+th { color: #33ff00; }
